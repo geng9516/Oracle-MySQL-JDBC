@@ -1,0 +1,184 @@
+
+1、需求：
+	请设计数据库表，来描述学生选课信息。
+
+2、分析：
+	一个学生可以选择多门课程
+	一门课程可以被多个学生选择
+	学生和课程之间的关系是一个多对多的关系
+	通常多对多的设计一般采用三张表进行存储和描述。
+
+3、具体设计：
+	
+	学生表
+	tbl_student
+
+	id(pk)	name
+	---------------------
+	1			a
+	2			b
+	3			c
+	4			d
+	5			e
+	6			f
+	7			x
+	8			y
+
+	课程表
+	tbl_course
+
+	id(pk)	name
+	----------------------
+	1			语文
+	2			数学
+	3			java
+	4			mysql
+	5			oracle
+	6			c
+	7			c++
+	8			.net
+
+	学生课程关系表
+	tbl_student_course_relation
+
+	id(pk)		studentId(fk)		courseId(fk)  【studentId,courseId需要联合添加唯一性约束】
+	-------------------------------------------------
+	1				1							1
+	2				1							2
+	3				1							3
+	4				1							4
+	5				1							5
+	6				1							6
+	7				1							7	
+	8				2							3
+	9				2							4
+	10				2							5
+	11				2							6
+	12				2							7
+	13				2							8
+	14				2							1
+
+4、以上的设计具体的SQL脚本
+
+----------------------------------------------SQL文-----------------------------------------------------------------
+
+//列级约束
+create table tbl_student(
+	id number(10) primary key,
+	name varchar2(32)
+);
+
+//表级约束【同时可以给约束起名】
+create table tbl_student(
+	id number(10),
+	name varchar2(32),
+	constraint tbl_student_pk_id primary key(id) 
+);
+
+//系统表
+//user_tables  【描述用户表信息的一张系统表】
+//user_constraints【描述约束对象信息的一张系统表】
+
+-----------------------------------------------------------------------------------------------------------------
+
+drop table tbl_student_course_relation;
+drop table tbl_student;
+drop table tbl_course;
+
+
+create table tbl_student(
+	id number(10),
+	name varchar2(32),
+	constraint tbl_student_pk_id primary key(id) 
+);
+
+
+create table tbl_course(
+	id number(10),
+	name varchar2(32),
+	constraint tbl_course_pk_id primary key(id)
+);
+
+create table tbl_student_course_relation(
+	id number(10),
+	studentId number(10),
+	courseId number(10),
+	constraint a primary key(id),
+	constraint b foreign key(studentId) references tbl_student(id),
+	constraint c foreign key(courseId) references tbl_course(id),
+	constraint d unique(studentId,courseId)
+);
+
+insert into tbl_student(id,name) values(1,'a');
+insert into tbl_student(id,name) values(2,'b');
+insert into tbl_student(id,name) values(3,'c');
+insert into tbl_student(id,name) values(4,'d');
+insert into tbl_student(id,name) values(5,'e');
+insert into tbl_student(id,name) values(6,'f');
+insert into tbl_student(id,name) values(7,'x');
+insert into tbl_student(id,name) values(8,'y');
+
+insert into tbl_course(id,name) values(1,'java');
+insert into tbl_course(id,name) values(2,'c');
+insert into tbl_course(id,name) values(3,'php');
+insert into tbl_course(id,name) values(4,'c++');
+insert into tbl_course(id,name) values(5,'c#');
+insert into tbl_course(id,name) values(6,'ASP');
+insert into tbl_course(id,name) values(7,'JSP');
+insert into tbl_course(id,name) values(8,'Servlet');
+
+insert into tbl_student_course_relation(id,studentId,courseId) values(1,1,1);
+insert into tbl_student_course_relation(id,studentId,courseId) values(2,1,2);
+insert into tbl_student_course_relation(id,studentId,courseId) values(3,1,3);
+insert into tbl_student_course_relation(id,studentId,courseId) values(4,1,4);
+insert into tbl_student_course_relation(id,studentId,courseId) values(5,1,5);
+insert into tbl_student_course_relation(id,studentId,courseId) values(6,1,6);
+insert into tbl_student_course_relation(id,studentId,courseId) values(7,1,7);
+insert into tbl_student_course_relation(id,studentId,courseId) values(8,2,1);
+insert into tbl_student_course_relation(id,studentId,courseId) values(9,2,3);
+insert into tbl_student_course_relation(id,studentId,courseId) values(10,2,4);
+insert into tbl_student_course_relation(id,studentId,courseId) values(11,2,5);
+insert into tbl_student_course_relation(id,studentId,courseId) values(12,2,6);
+insert into tbl_student_course_relation(id,studentId,courseId) values(13,2,7);
+insert into tbl_student_course_relation(id,studentId,courseId) values(14,2,8);
+
+commit;
+
+select * from tbl_student;
+select * from tbl_course;
+select * from tbl_student_course_relation;
+
+
+
+----------------------------------------------SQL文-----------------------------------------------------------------
+
+案例：知道学生的id=1，请找出该学生所选课程名称，要求显示学生名和课程名
+
+tbl_student s
+tbl_course c
+tbl_student_course_relation sc
+
+select 
+	s.name,c.name
+from
+	tbl_student_course_relation sc
+join
+	tbl_student s
+on
+	sc.studentId = s.id
+join
+	tbl_course c
+on
+	sc.courseId = c.id
+where
+	s.id = 1;
+
+NAME                                                             NAME
+---------------------------------------------------------------- --------
+a                                                                java
+a                                                                c
+a                                                                php
+a                                                                c++
+a                                                                c#
+a                                                                ASP
+a                                                                JSP

@@ -1,0 +1,81 @@
+
+分组函数/多行处理函数
+
+1、多行处理函数？
+	这种函数可以一次处理多行记录，多行记录处理完成之后最终生成一行结果。
+
+2、“分组函数”通常和group by联合使用，group by就是专门分组的。依靠某个字段或者某些字段进行联合分组，
+分组之后想计算某个结果，必须使用分组函数。
+
+3、当DQL语句中没有group by语句的话，整个表为一组。
+
+4、重点：所有的分组函数自动忽略空值。
+
+4、分组函数包括：
+	count	统计
+	sum	求和
+	avg	求平均值
+	max	求最大值
+	min	求最小值
+
+5、关于count分组函数：
+
+	SQL> select count(ename) from emp;
+
+	COUNT(ENAME)
+	------------
+				 12
+
+	SQL> select count(comm) from emp;
+
+	COUNT(COMM)
+	-----------
+				 4
+	
+	SQL> select count(*) from emp;
+
+	  COUNT(*)
+	----------
+			  12
+
+	面试题：
+
+		count(*)和count(具体某个字段)的区别？
+
+			* count(字段)表示：该字段中不为空的元素总数
+
+			* count(*)表示：和具体的某个字段无关，不是统计字段中不为空的元素总数，而是统计查询结果的总条数。
+
+6、关于SUM函数：
+
+	SQL> select sum(comm) from emp;
+
+	 SUM(COMM)
+	----------
+			2200
+
+7、关于avg函数
+
+	select avg(sal) from emp;
+
+		  AVG(SAL)
+		----------
+		2077.08333
+
+8、关于max函数
+	
+	select max(sal) from emp;
+
+9、关于min函数
+
+	select min(sal) from emp;
+
+10、重点：
+
+	SQL> select ename,sal from emp where sal > min(sal);
+	select ename,sal from emp where sal > min(sal)
+													  *
+	第 1 行出现错误:
+	ORA-00934: 此处不允许使用分组函数
+	
+	分组是在where条件执行之后才进行的，分组之后，分组函数才能用。

@@ -1,0 +1,75 @@
+
+1、关于Mysql数据库中的数据类型：
+	* int		整数型
+	* bigint	长整型
+	* float	单精度浮点型
+	* double	双精度浮点型
+	* char	字符型【长度不可变】
+	* varchar 字符型【长度可变】
+	* date	日期类型
+	* blob	二进制大对象【Binary Large OBject，存储图片、声音、视频...】
+	* clob	字符大对象【Character Large OBject，可以存储4G+的字符串】
+
+2、关于Oracle数据库中的数据类型：
+	* number
+		- number(3)	整数型：3表示长度，最大值是999
+		- number(3,2) 浮点型：3是有效数字的个数，2是小数位的个数
+		- 案例：
+			create table t_product(
+				price number(3,2)
+			);
+			insert into t_product(price) values(10); //ORA-01438: 值大于为此列指定的允许精度
+			insert into t_product(price) values(1); //可以
+			insert into t_product(price) values(1.2356); //可以
+
+	* char	字符型【长度不可变】
+	* varchar2 字符型【长度可变】
+	* date	日期类型
+	* blob	二进制大对象【Binary Large OBject，存储图片、声音、视频...】
+	* clob	字符大对象【Character Large OBject，可以存储4G+的字符串】
+
+3、在实际开发中，日期类型一般都会采用char类型这种字符串的形式表示。因为每一个数据库
+在处理日期类型方面都是不同的。使用date类型会导致将来的数据库很难移植。
+
+4、关于blob类型：
+	create table t_movie(
+		id number(10) primary key,
+		name varchar2(32),
+		image blob
+	);
+
+	当一张表中的某个字段的数据类型是blob的时候，该字段插入数据的时候不能使用insert语句，
+	insert语法无法完成，必须使用编程语言中提供的IO流来完成插入操作。
+
+	但是，实际开发中一般情况下blob使用较少，当向一张表中存储图片的时候，可以考虑将图片存储
+	到“云盘”当中，然后云盘对外提供一个共享的连接地址，将这个共享的连接地址插入到数据库表中，
+	将来用户查询这张表的时候，直接获取到共享链接地址，通过链接地址访问。
+
+5、char和varchar的区别？
+	* char是定长字符串
+	* varchar是可变长度字符串
+
+	* 假设在建表的时候，给name字段设置的数据类型是char(10)，将来向这个name字段中插入"jack"的时候，
+	底层实际上存储的是：“jack+6个空格"。使用不恰当的时候会浪费存储空间。
+
+	* 假设在建表的时候，给name字段设置的数据类型是varchar(10)，将来向这个name字段中插入"jack"的时候，
+	底层实际上存储的是：“jack"。它会根据数据的实际长度进行空间的分配。
+
+	* char和varchar怎么选择使用？
+		- 当某个字段中存储的数据长度是不变的，例如：性别、生日这样的字段还是采用char类型来定义，
+		效率高，也不会浪费空间。
+		- 当这个字段的长度不固定的时候，例如，这个字段是用来存储一个人的简介的时候，建议采用varchar类型。
+
+6、varchar和varchar2的区别？
+	
+	* varchar是SQL语句当中的标准，所有的数据库都支持。
+
+	* varchar2是varchar第二代，是Oracle数据库中特有的，其它数据库中没有。
+
+	* varchar采用一个字节编码
+
+	* varchar2采用两个字节编码，所以varchar2可以容纳更多国家的语言。varchar2的容量较大。
+
+	* 在实际开发中尽量使用标准，使用varchar，即使在程序中使用了varchar，到Oracle数据库中也会自动变成varchar2
+
+

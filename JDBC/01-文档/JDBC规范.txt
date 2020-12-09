@@ -1,0 +1,72 @@
+一。接口作用：
+
+              1.指定规则
+
+	      2.降低Java工程中类文件之间耦合度。从而降低维护成本【设计原则】
+
+二。JAVAEE规范与JAVASE规范区别
+
+              1.JAVASE：指Java类在单独执行，在单独处理业务时需要遵守语法规则。
+	                比如 继承，访问权限，接口实现，控制语句，标识符命名。。。
+
+
+              2.JAVAEE: Java在进行商业开发时遵守开发规则
+	                在商业开发过程中，往往需要Java类与不同服务器进行沟通来解决当前业务
+			由于在商业开发过程中，Java需要与13种不同服务器进行沟通，因此SUN公司
+			根据13种服务器特征指定13套接口，这13套接口统称为JAVAEE规范。
+			SUN公司相当于【汽车制造工厂】负责提供接口（Engine），但是不负责提供接口
+			中实现类。接口中实现类由不同服务器厂商来提供。服务器厂商将完成接口实现类
+			以JAR包形式提供。Java程序员通过jar包得到接口中实现类，从而实现与指定服务器
+			之间交流。
+
+三。JDBC规范介绍:
+
+             1.JAVAEE中的一种规范
+	     2.指定Java类与关系型数据库服务器【MySql,Oracle,SqlServer】之间沟通规则
+	     3.JDBC规范提供接口存在JDKJAR中。java.sql包
+	     4.JDBC规范接口实现类由不同关系型数据库服务器厂商以JAR包形式提供
+
+
+四。JDBC规范调用流程【背】
+
+             1.将MySql服务器厂商提供Driver接口实现类注册到JVM
+
+	     2.通过JDBC规范中DriverManager在Java工程与MySql服务器之间建立一个【连接通道】
+
+
+	     3.通过MySql服务器厂商提供Connection接口实现类建立一个交通工具【PreparedStatement】
+
+	     4.通过交通工具【PreparedStatement】将SQL命令从Java工程推送到MySql服务器上执行
+	       并带回执行结果
+
+             5.销毁本次交易过程涉及所有资源对象
+
+五。JDBC规范下接口介绍：
+
+              1.位置：JDBC规范下接口存在于JDK_1.8.jar下java.sql包
+
+	      2.分类：
+	              1）java.sql.DriverManager类：这个类存在于JDK_1.8下。
+		                                    负责将数据库厂商提供Driver接口实现进行注册
+						    负责在Java工程与MySql服务器之间建立一个【连接通道】
+
+
+                      2）java.sql.Connection接口：负责管理Java工程与数据库服务器之间【连接通道】 
+
+		      3）java.sql.PreparedStatement接口：负责管理在【连接通道】 上进行往返交通的【交通工具】
+
+		      4) java.sql.ResultSet接口：负责管理数据库服务器返回【临时表】
+
+六。ps.executeUpdate  与  ps.executeQuery 区别:
+
+
+               1.ps.executeUpdate：
+	                          1） 负责推送插入命令【insert】，更新命令[update]，删除命令[delete]
+				  2） 返回结果对表文件进行操作时，收到影响行数，比如插入了多少行，更新了多少行
+				      删除了多少行
+
+
+               2.ps.executeQuery：
+	                          1） 负责推送查询命令【select  *  from 表名】
+				  2） 返回结果是查询命令得到【临时表】，在JDBC规范中【临时表】
+				      交给ResultSet接口实现类管理。实际上返回ResultSet实例对象

@@ -1,0 +1,125 @@
+
+union【将查询结果相加】
+
+1、查询工作岗位是MANAGER和SALESMAN的员工
+
+SQL> select ename,job from emp where job='MANAGER' or job='SALESMAN';
+
+SQL> select ename,job from emp where job in('MANAGER','SALESMAN');
+
+ENAME                JOB
+-------------------- ------------------
+ALLEN                SALESMAN
+WARD                 SALESMAN
+JONES                MANAGER
+MARTIN               SALESMAN
+BLAKE                MANAGER
+CLARK                MANAGER
+TURNER               SALESMAN
+
+SQL> select ename,job from emp where job='MANAGER'
+  2  union
+  3  select ename,job from emp where job='SALESMAN';
+
+ENAME                JOB
+-------------------- ------------------
+ALLEN                SALESMAN
+BLAKE                MANAGER
+CLARK                MANAGER
+JONES                MANAGER
+MARTIN               SALESMAN
+TURNER               SALESMAN
+WARD                 SALESMAN
+
+重点：调优策略
+	使用union可以将两张不同的表中的记录进行拼接/组合。达到表连接的效果。
+	这种方式还是基于单表查询，不是表的连接查询，比表的连接查询效率高一些。
+
+union的使用注意事项：
+	要求两个查询结果集的字段数量相同，并且数据类型对应相同。【要求比较严格】
+
+SQL> select ename,sal from emp
+  2  union
+  3  select dname from dept;
+select ename,sal from emp
+*
+第 1 行出现错误:
+ORA-01789: 查询块具有不正确的结果列数
+
+
+SQL> select ename,sal from emp
+  2  union
+  3  select sal,ename from emp;
+select ename,sal from emp
+       *
+第 1 行出现错误:
+ORA-01790: 表达式必须具有与对应表达式相同的数据类型
+
+
+SQL> select ename,sal from emp
+  2  union
+  3  select dname,deptno from dept;
+
+ENAME                               SAL
+---------------------------- ----------
+ACCOUNTING                           10
+ALLEN                              1600
+BLAKE                              2850
+CLARK                              2450
+FORD                               3000
+JAMES                               950
+JONES                              2975
+KING                               5000
+MARTIN                             1250
+MILLER                             1300
+OPERATIONS                           40
+RESEARCH                             20
+SALES                                30
+SMITH                               800
+TURNER                             1500
+WARD                               1250
+
+---------------------------------------------------------------------------------------------------------------
+
+minus【将查询结果相减：mysql中没有】
+
+	注意：minus和union的语法完全相同，使用注意事项也是完全相同，只不过minus只负责相减
+
+	SQL> select ename,sal from emp where sal < 3000
+	  2  minus
+	  3  select ename,sal from emp where sal < 1500;
+
+	ENAME                       SAL
+	-------------------- ----------
+	ALLEN                      1600
+	BLAKE                      2850
+	CLARK                      2450
+	JONES                      2975
+	TURNER                     1500
+
+	SQL> select ename,sal from emp
+	2  minus
+	3  select dname,deptno from dept;
+
+	ENAME                               SAL
+	---------------------------- ----------
+	ALLEN                              1600
+	BLAKE                              2850
+	CLARK                              2450
+	FORD                               3000
+	JAMES                               950
+	JONES                              2975
+	KING                               5000
+	MARTIN                             1250
+	MILLER                             1300
+	SMITH                               800
+	TURNER                             1500
+	WARD                               1250
+
+	A结果集 - B结果集 = 【减去的A结果集和B结果集的交集部分，并且最终剩余的记录是A结果集中的记录】
+
+
+
+
+
+	

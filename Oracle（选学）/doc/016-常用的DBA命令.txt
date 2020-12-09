@@ -1,0 +1,60 @@
+
+常用的DBA命令：
+
+1、系统表：
+	user_tables
+	user_indexes
+	user_views
+	user_sequences
+	user_constraints
+	user_objects
+	session_privs
+
+2、显示当前用户
+	show user;
+	这不是一条SQL语句，只是Oracle数据库sqlplus当中的一个命令
+
+3、切换用户：
+	conn system/bjpowernode@IP/全局数据库名
+
+4、java语言连接Oracle数据库的信息：
+	driver=oracle.jdbc.driver.OracleDriver
+	url=jdbc:oracle:thin:@localhost:1521:XE
+	user=scott
+	password=tiger
+
+5、查看所有的用户：
+	SQL> show user;
+	USER 为 "SCOTT"
+	SQL> select username from dba_users;
+	select username from dba_users
+								*
+	第 1 行出现错误:
+	ORA-00942: 表或视图不存在
+
+	注意：scott是非管理员用户，是普通的Oracle数据库用户，没有dba_users表格，只有系统管理员才有
+
+6、删除用户，以及该用户所有级联的对象：
+
+	SQL> drop user scott cascade;
+
+7、给用户加锁
+	
+	alter user scott account lock;
+
+8、给用户解锁
+	
+	alter user scott account unlock;
+
+9、修改用户密码
+	
+	alter user scott identified by tiger123;
+
+10、使用imp和exp导入和导出数据：
+
+	* imp和exp必须在dos窗口中完成，不能登录上数据库去完成
+
+	* exp scott/tiger file=D:\EMP.DMF tables=emp,dept,salgrade
+
+	* imp scott/tiger file=D:\EMP.DMF
+

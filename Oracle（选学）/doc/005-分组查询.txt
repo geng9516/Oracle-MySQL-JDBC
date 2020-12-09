@@ -1,0 +1,135 @@
+分组查询
+
+1、分组查询涉及到的语句：
+	group by
+	having
+
+	group by和having联合使用，没有group by就不能使用having
+	having是专门对分组之后的数据进行再次过滤的。
+
+2、案例：
+	
+	* 找出每个工作岗位的总人数【按照工作岗位分组，对每一组进行统计】
+
+		SQL> select job,count(*) from emp group by job;
+
+		JOB                  COUNT(*)
+		------------------ ----------
+		CLERK                       3
+		SALESMAN                    4
+		PRESIDENT                   1
+		MANAGER                     3
+		ANALYST                     1
+		
+	* 找出每个工作岗位的总人数，除MANAGER岗位之外
+		
+		SQL> select job,count(*) from emp group by job having job <> 'MANAGER';
+
+		JOB                  COUNT(*)
+		------------------ ----------
+		CLERK                       3
+		SALESMAN                    4
+		PRESIDENT                   1
+		ANALYST                     1
+
+		SQL> select job,count(*) from emp where job<>'MANAGER' group by job;  //优先考虑此方案
+
+		JOB                  COUNT(*)
+		------------------ ----------
+		CLERK                       3
+		SALESMAN                    4
+		PRESIDENT                   1
+		ANALYST                     1
+
+		原则：能够使用where条件过滤，尽量使用where，除非where无法过滤，要求分组之后才能过滤，此时使用having。
+
+	* 找出每个工作岗位的平均薪水，要求显示平均薪水大于1500的数据
+		
+		select job,avg(sal) from emp where avg(sal) > 1500 group by job; //该语句有语法错误，where后面不能直接跟分组函数
+
+		SQL> select job,avg(sal) from emp group by job having avg(sal) > 1500 ;
+
+		JOB                  AVG(SAL)
+		------------------ ----------
+		PRESIDENT                5000
+		MANAGER            2758.33333
+		ANALYST                  3000
+
+		SQL> select job,avg(sal) as avgsal from emp group by job having avgsal > 1500 ;
+		select job,avg(sal) as avgsal from emp group by job having avgsal > 1500
+																					  *
+		第 1 行出现错误:
+		ORA-00904: "AVGSAL": 标识符无效
+
+		结论：having语句在select语句执行之前执行，以上语句MYSQL可以执行，Oracle报错。Oracle语法严格。
+	
+	* 找出每个部门的最高薪水？
+
+		select 
+			deptno,max(sal)
+		from
+			emp
+		group by
+			deptno;
+
+			 DEPTNO   MAX(SAL)
+		---------- ----------
+				  30       2850
+				  20       3000
+				  10       5000
+		
+		select 
+			ename,deptno,max(sal)
+		from
+			emp
+		group by
+			deptno;
+		
+		以上语句在mysql中可以执行，但是执行结果没有意义
+		以上语句在Oracle数据库中执行报错。Oracle语法严格。
+
+		结论：当一个DQL语句中有group by的话，select关键字后面只能跟“分组函数”和“参与分组的字段”
+	
+	* 可以通过多个字段分组吗？找出每个部门不同工作岗位的人数
+
+		select count(*),deptno,job from emp group by deptno,job;
+
+		  COUNT(*)     DEPTNO JOB
+		---------- ---------- ---------------
+					1         20 CLERK
+					4         30 SALESMAN
+					1         20 MANAGER
+					1         30 CLERK
+					1         10 PRESIDENT
+					1         30 MANAGER
+					1         10 CLERK
+					1         10 MANAGER
+					1         20 ANALYST
+
+----------------------------------------------------------------------------------------------------------------
+重点：DQL语句总结
+
+	select ..		5
+	from...			1
+	where...			2
+	group by ...	3
+	having ...		4
+	order by ...	6
+
+
+SQL> select ename,sal as salary from emp order by salary;
+
+	ENAME                    SALARY
+	-------------------- ----------
+	SMITH                       800
+	JAMES                       950
+	WARD                       1250
+	MARTIN                     1250
+	MILLER                     1300
+	TURNER                     1500
+	ALLEN                      1600
+	CLARK                      2450
+	BLAKE                      2850
+	JONES                      2975
+	FORD                       3000
+	KING                       5000

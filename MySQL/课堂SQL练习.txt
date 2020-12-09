@@ -1,0 +1,273 @@
+ select * from emp
+# in---  where 字段名  in (值1，值2)
+#查询所有【项目经理】，【办事员】，【销售】
+         #select *   from emp where job='salesman'  or job = 'clerk' or job='manager'
+          select * from emp where job in('salesman','clerk','manager')
+
+# not in   ---  where 字段名 not in(值1，值2)
+#查询职位不是【项目经理】，【办事员】，【销售】
+         # select ename,job  from emp where job !='manager'  and  job!='salesman' and job!='clerk'
+            select * from emp  where job not in('salesman','manager','clerk')
+
+# MySql中null值，不表示空含义，表示一个不确定的值，这个值既然是不确定因此无法进行任何运算
+#  is null
+#查询所有补助为null的职员信息
+         # select ename ,comm  from emp where comm = null  无法得到真实数据
+           select ename,comm  from emp where  comm is null
+# is not null
+#查询所有补助不为null的职员信息
+                #  select ename,comm  from emp where comm != null 无法得到真实数据
+                    select ename,comm from emp where comm is not null
+
+
+
+# like  模糊查询
+# 查询所有名称以S开头的职员信息【前置条件模糊查询】
+                  select * from emp where ename like 's%'  # %是一个通配符，表示一个长度任意字符串
+
+#查询所有名称以S结尾的职员信息【后置条件模糊查询】
+                   select *   from emp where ename like '%s'
+
+#查询所有名称【包含】S的职员信息
+                    select ename  from  emp where ename like '%s%'
+
+#查询名字中第二个字母是A的人
+                  select *   from  emp where ename like '_A%' # 下划线是通配符，表示一个任意字符
+
+#查询名字中第三个字母是A的人
+                   select * from  emp  where ename like '__A%'
+
+#聚合函数:
+#  用于对临时表指定字段下【所有内容】进行统计的函数
+#  分类：  max(字段)，min(字段)，sum(字段)，avg(字段)，count(字段)
+
+# max(字段)： 返回指定字段下最大值
+#查询部门20下最高工资
+              select  max(sal)  from emp where deptno=20
+
+#min(字段)：返回指定字段下最小值
+#销售岗位最低工资
+             select min(sal)    from emp where job='salesman'   
+
+#sum(字段)：返回指定字段下所有数据相加之和
+#部门10所有职员工资总和
+                  select sum(sal)  from emp where deptno=10  
+   
+#avg(字段)：返回指定下所有数据平均值
+#部门30下所有销售人员平均工资
+                select avg(sal)   from emp  where deptno=30  and job='salesman'
+    
+#count(字段)：返回指定字段下内容不等于null的数据个数
+#查询有具体补助人数
+                       select count(comm)    from emp
+#查询有具体工资人数
+                       select count(sal) from emp
+
+# count(*): 统计临时表下所有数据行个数，不考虑数据行是否存在null
+#查询部门20下职员人数
+                        select count(*) from emp where deptno =20
+#查询所有的职员人数
+                        select count(*)  from emp
+
+
+#group by 
+#查询各个部门下人数
+     select deptno,count(*)  from emp group by deptno
+#查询部门30下各个职位人数
+        select  job,count(*)    from emp  where  deptno =30 group by job
+#查询各个部门下各个职位信息（各个国家有各个国家国旗）
+
+             select deptno,job,count(*)    from emp  group by  deptno,job
+
+#having
+#查看各个部门下人数
+          select deptno,count(*)   from emp group by deptno
+#查看人数在5人以上的部门 
+           select deptno,count(*)   from emp group by deptno HAVING count(*) >= 5
+#order by 
+# 查询部门20下所有职员信息
+       select deptno,ename,job,sal from emp where deptno=20
+#查询部门20下所有职员信息，按照工资升序排列
+      # select deptno,ename,job,sal from emp where deptno=20 order by sal asc
+          select deptno,ename,job,sal from emp where deptno=20 order by sal desc
+# order by 不仅仅可以写字段命，也可以写字段在【当前临时表位置】
+            select deptno,ename,job,sal from emp where deptno=20 order by 4 desc
+#多字段排序
+#查询职员信息，根据部门编号进行升序
+#同一个部门下职员按照工资进行降序
+#同一个部门下工资相同职员按照入职先后顺序（升序）
+            select *
+            from emp
+            order by  deptno asc , sal desc , hiredate asc 
+
+#查询工资排在第一名的职员信息
+         select *     from emp order by sal desc limit 0,1
+
+#查询销售人员工资排在前两名的职员信息
+        select *  from emp where job='salesman' order by sal desc limit 0,2
+
+#MySql服务器中，表文件字段位置从1开始计算，表文件数据行位置从0开始计算
+
+#连接查询合并方案
+
+# 查询各个【部门名称】及其部门下【职员名称】
+#  数据来源： 【部门名称】---Dept.dname
+#                   【职员名称】---Emp.ename
+# 确认表之间关系： Dept与Emp之间形成【隶属关系】
+#确认表之间角色：  Dept 是一方表；  Emp是多方表
+                SELECT *
+                FROM   DEPT JOIN EMP  #连接查询合并方案
+
+# 查询各个部门名称极其部门下最高工资,根据部门编号升序
+                   select dept.deptno,dept.dname ,max(sal)
+                    from  dept join emp
+                    on  dept.deptno = emp.DEPTNO
+                    group by dept.dname 
+                    order by  1 asc
+  # 查询各个部门名称及其部门下clerk的人数
+                     select dept.dname,count(*)
+                      from dept join emp
+                      on dept.deptno = emp.deptno
+                      where emp.JOB='clerk'
+                      group by dept.dname
+
+  #查询各个部门名称及其部门下人数
+                       select dept.dname,count(*)
+                        from dept join emp
+                        on dept.DEPTNO= emp.deptno
+                        group by dept.dname
+#查询各个部门名称及其部门下人数,仅显示人数在5人以上部门
+                       select dept.dname,count(*)
+                        from dept join emp
+                        on dept.DEPTNO= emp.deptno
+                        group by dept.dname
+                        having  count(*) >=5
+
+#查询各个部门名称及其部门下人数,仅显示人数在5人以上部门,要求根据部门人数进行降序
+                       select dept.dname,count(*)
+                        from dept join emp
+                        on dept.DEPTNO= emp.deptno
+                        group by dept.dname
+                        having  count(*) >=5
+                        order by count(*) desc #此处不是调用聚合函数，是select生成临时表字段名
+                        # order by 对select 生成的临时表数据进行排序
+                        # order by 使用排序字段只能来自于select生成的临时表
+          
+ #查询所有职员工资及其工资等级
+ select emp.ename,emp.sal,salgrade.losal,salgrade.hisal,salgrade.grade
+  from salgrade join emp
+  on  emp.sal between salgrade.losal and salgrade.hisal 
+  
+  #外连接过滤方案
+select * from dept
+select * from emp
+#查询各个部门名称及其部门下人数【无论这个部门是否有人，都要展示出来】
+            select dept.dname,count(EMP.EMPNO)
+            from dept left join emp
+            on dept.DEPTNO= emp.deptno
+            group by dept.dname
+#联合查询
+         select empno,ename from emp
+        UNION
+        select deptno,dname from dept
+
+	 select empno,ename from emp #14
+        UNION  ALL
+        select deptno,dname from dept  # 5  [7369,smith]
+
+
+#查询工资高于公司平均工资的职员信息
+                select  *
+                 FROM EMP
+                 where  sal > 公司平均工资
+#公司平均工资
+                select avg(sal)    from  emp
+
+#综合：
+                select  ename,sal
+                 FROM EMP
+                 where  sal > (select avg(sal)    from  emp)  #2073
+      
+#子查询在Select之后使用
+# 查询职员姓名，工资，以及公司的平均工资
+                SELECT ENAME, SAL,(SELECT AVG(SAL) FROM EMP)
+                FROM EMP
+#子查询生成临时表，交给FROM定位
+             select t1.deptno,t1.dname,t1.ename
+             from( 
+                     select dept.deptno,dept.dname,emp.ename,emp.job,emp.sal
+                     from emp  join dept
+                     on dept.deptno = emp.deptno
+                   ) as t1
+#子查询在HAVING之后提供数据
+#查询出部门平均工资高于公司平均工资的部门信息
+                 select deptno,avg(sal)
+                  from emp
+                  group by deptno
+                  having avg(sal) > (select avg(sal)    from  emp)
+
+
+DROP TABLE TEST1
+DROP TABLE TEST2
+
+CREATE TABLE TEST1(
+    SID  INT,
+   SNAME VARCHAR(10)  NOT NULL  # 为sname字段添加非空约束
+
+)
+insert into  test1(sid,sname) values(1,'mike')
+insert into  test1(sid,sname) values(2,null)
+insert into  test1(sid) values(3)
+
+create table test2(
+      sid int,
+      sname varchar(10),
+      email  varchar(50)  unique # 为email字段添加唯一性约束
+)
+insert into  test2  values(1,'mike','mike@163.com')
+insert into  test2  values(2,'allen','mike@163.com')  # Duplicate entry  重复数据冲突
+insert into  test2  values(3,'smith',null)
+insert into  test2  values(4,'tom',null)
+select * from test2
+
+CREATE TABLE TEST3(
+    SID INT   PRIMARY KEY,  # 为sid字段添加主键约束
+    SNAME VARCHAR(20)
+)
+insert into test3(sid,sname) values(1,'mike')
+insert into test3(sid,sname) values(1,'allen')  #Dupliate entry
+insert into test3(sid,sname) values(null,'tom')
+
+
+create view  view_1  as select * from emp where empno=7369
+
+select  *  from view_1
+
+insert into view_1(empno,ename,job) values(2000,'emp2000','clerk')
+
+update view_1 set ename='老崔' where empno=7788
+
+
+
+
+
+
+
+
+
+
+
+
+
+   
+
+
+
+
+
+
+
+
+
+
+

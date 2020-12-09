@@ -1,0 +1,121 @@
+
+to_date
+
+	1、to_date函数的作用：将varchar类型转换成date类型
+
+	2、to_date函数的最终运算结果类型是：DATE类型
+
+	3、to_date函数的语法格式：to_date('字符串日期','日期格式')
+
+	4、关于日期格式：
+		
+		* 回顾java中的日期格式：
+			yyyy-MM-dd HH:mm:ss SSS【全日期格式】
+		
+		* 回顾java中：java.lang.String-->java.util.Date怎么转换？
+
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+			Date time = sdf.parse("1980-10-11");
+		
+		* Oracle数据库中的日期格式：
+			YYYY		年
+			MM/MON	月【假设月份是七月份，MM表示的话：07，MON表示的话：7月】
+			DD			日
+			HH			时
+			MI			分
+			SS			秒
+		
+		* Oracle数据库默认的日期格式是：DD-MON-YY
+		
+	5、to_date函数的使用案例：
+		
+		* 创建一张学生表，学生有生日，生日用日期类型
+
+			-删除学生表
+				SQL> drop table t_student;  //Oracle和MySQL都支持
+				SQL> drop table if exists t_student; //Oracle不支持，MySQL支持
+			
+			-创建表的DDL：
+				create table t_student(
+					name varchar(32),
+					birth date
+				);
+		
+		* 向t_student表中插入数据
+			
+			//错误：'1980-10-11'日期字符串和Oracle默认的日期格式不同，而且'1980-10-11'是字符串类型，类型不匹配。
+			insert into t_student(name,birth) values('jack','1980-10-11'); 
+
+			//可以：birth是date类型，'11-10月-80'这个字符串日期正好和Oracle数据库默认的日期格式相同
+			//存在类型自动转换
+			insert into t_student(name,birth) values('jack','11-10月-80'); 
+
+			//可以：以下使用了手动转换
+			insert into t_student(name,birth) values('jack',to_date('1980-10-11','YYYY-MM-DD')); 
+		
+	6、to_date函数多数使用在insert操作当中，数据库表中某个字段是日期类型，不能直接将字符串给这个字段，除非
+	这个字符串的格式恰好和数据库默认的日期格式相同。要不然必须手动调用to_date函数进行类型转换。
+------------------------------------------------------------------------------------------------------------------
+
+to_char
+	
+	1、to_char函数的作用：将DATE转换成具有特定格式的VARCHAR
+
+	2、to_char函数的运算结果是：VARCHAR类型
+
+	3、to_char函数的语法格式：to_char(日期数据,'日期格式')
+
+	4、回顾java中的日期格式化：
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		Date time = new Date();
+		String strTime = sdf.format(time);
+	
+	5、案例：
+
+		查询所有学生的生日，要求学生生日显示格式是："2000-10-11"
+		select name,to_char(birth,'YYYY-MM-DD') as birth from t_student;
+			NAME                                                             BIRTH
+			---------------------------------------------------------------- -----------
+			jack                                                             1980-10-11
+			jack                                                             1980-10-11
+
+		SQL> select name,birth from t_student; //存在自动类型转换，按照Oracle默认的日期格式转换
+		NAME                                                             BIRTH
+		---------------------------------------------------------------- --------------
+		jack                                                             11-10月-80
+		jack                                                             11-10月-80
+		
+		以上SQL语句还可以写成另外一种形式：
+		select name,to_char(birth,'DD-MON-YY') as birth from t_student;
+		NAME                                                             BIRTH
+		---------------------------------------------------------------- --------------
+		jack                                                             11-10月-80
+		jack                                                             11-10月-80
+	
+	6、to_char函数多数使用在查询语句当中，以特定格式的字符串展示该日期的时候使用。
+
+------------------------------------------------------------------------------------------------------------------
+
+to_number【了解】
+	
+	* VARCHAR ---> NUMBER
+
+------------------------------------------------------------------------------------------------------------------
+
+重点：
+
+	在Oracle数据库当中怎么获取Oracle数据库的系统时间？
+
+		SQL> select sysdate from dual;
+
+		SYSDATE
+		--------------
+		15-8月 -16
+
+
+		SQL> select to_char(sysdate,'YYYY-MON-DD HH:MI:SS') as nowTime from dual;
+
+		NOWTIME
+		--------------------------------------------------
+		2016-8月 -15 03:58:16
+		

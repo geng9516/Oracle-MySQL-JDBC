@@ -1,0 +1,80 @@
+
+子查询
+
+1、什么是子查询?
+	DQL语句嵌套到某个SQL语句当中。
+
+2、子查询可以出现在哪里？
+	select .(select)..
+	from..(select).
+	where..(select).
+	
+3、案例：找出比平均薪水高的员工，要求显示员工名，薪水
+
+	第一步：找出平均薪水
+
+	SQL> select avg(sal) from emp;
+
+	  AVG(SAL)
+	----------
+	2077.08333
+
+	第二步：找出薪水 > 2077.08333
+
+	SQL> select ename,sal from emp where sal > (select avg(sal) from emp);
+
+	ENAME                       SAL
+	-------------------- ----------
+	JONES                      2975
+	BLAKE                      2850
+	CLARK                      2450
+	KING                       5000
+	FORD                       3000
+
+4、案例：找出每个部门的平均薪水的等级【先找出平均薪水，然后算平均薪水的等级】
+
+	第一步：找出每个部门的平均薪水
+
+	SQL> select avg(sal) as avgsal,deptno from emp group by deptno;
+
+		 AVGSAL     DEPTNO
+	---------- ----------
+	1566.66667         30
+	2258.33333         20
+	2916.66667         10
+
+	第二步：将以上查询结果看做临时表t，和salgrade s表进行连接，条件：t.AVGSAL between s.losal and s.hisal
+
+	select 
+		t.*,s.grade 
+	from 
+		(select avg(sal) as avgsal,deptno from emp group by deptno) t 
+	join 
+		salgrade s 
+	on 
+		t.AVGSAL between s.losal and s.hisal;
+
+		 AVGSAL     DEPTNO      GRADE
+	---------- ---------- ----------
+	1566.66667         30          3
+	2258.33333         20          4
+	2916.66667         10          4
+
+5、案例：【了解select..(select).】
+	
+select e.ename, e.deptno, (select d.dname from dept d where e.deptno=d.deptno) as dname from emp e;
+
+ENAME                    DEPTNO DNAME
+-------------------- ---------- ------------
+SMITH                        20 RESEARCH
+ALLEN                        30 SALES
+WARD                         30 SALES
+JONES                        20 RESEARCH
+MARTIN                       30 SALES
+BLAKE                        30 SALES
+CLARK                        10 ACCOUNTING
+KING                         10 ACCOUNTING
+TURNER                       30 SALES
+JAMES                        30 SALES
+FORD                         20 RESEARCH
+MILLER                       10 ACCOUNTING

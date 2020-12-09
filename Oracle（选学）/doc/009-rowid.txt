@@ -1,0 +1,68 @@
+rowid
+
+1、rowid是Oracle数据库中特有的，在其它数据库中没有。rowid【行的标识】
+
+2、rowid是一张表中真正存在的一个字段。并且rowid是和表中记录存在绑定关系的。每一张表都有rowid字段。
+
+3、rowid是：行的id，是一张表中某条记录的在硬盘上存储的真实物理地址。通过rowid查询表中的记录不需要
+对表进行扫描，直接从硬盘上读取该数据，因为有硬盘的真实物理地址。
+
+4、案例：
+
+	SQL> select ename,sal,rowid from emp;
+
+	 EMPNO ENAME                JOB                       MGR HIREDATE              SAL       COMM     DEPTNO ROWID
+	------ -------------------- ------------------ ---------- -------------- ---------- ---------- ---------- ----------------
+	  7369 SMITH                CLERK                    7902 17-12月-80            800                 20 AAAE5SAABAAAK+hAAA
+	  7499 ALLEN                SALESMAN                 7698 20-2月 -81           1600        300      30 AAAE5SAABAAAK+hAAB
+	  7521 WARD                 SALESMAN                 7698 22-2月 -81           1250        500      30 AAAE5SAABAAAK+hAAC
+	  7566 JONES                MANAGER                  7839 02-4月 -81           2975                 20 AAAE5SAABAAAK+hAAD
+	  7654 MARTIN               SALESMAN                 7698 28-9月 -81           1250       1400      30 AAAE5SAABAAAK+hAAE
+	  7698 BLAKE                MANAGER                  7839 01-5月 -81           2850                 30 AAAE5SAABAAAK+hAAF
+	  7782 CLARK                MANAGER                  7839 09-6月 -81           2450                 10 AAAE5SAABAAAK+hAAG
+	  7839 KING                 PRESIDENT                     17-11月-81           5000                 10 AAAE5SAABAAAK+hAAH
+	  7844 TURNER               SALESMAN                 7698 08-9月 -81           1500          0      30 AAAE5SAABAAAK+hAAI
+	  7900 JAMES                CLERK                    7698 03-12月-81            950                 30 AAAE5SAABAAAK+hAAJ
+	  7902 FORD                 ANALYST                  7566 03-12月-81           3000                 20 AAAE5SAABAAAK+hAAK
+	  7934 MILLER               CLERK                    7782 23-1月 -82           1300                 10 AAAE5SAABAAAK+hAAL
+	 
+	分析以下两条SQL语句的执行效率：
+		
+		select * from emp where ename = 'FORD'; //这条语句会对ename字段进行全表扫描。
+
+		select * from emp where rowid = 'AAAE5SAABAAAK+hAAK'; //这条语句不会进行表的全表扫描，直接通过物理地址定位。
+
+5、rowid和以后要讲解的index【索引】有关系。
+	* 索引之所以会提高程序的执行效率，就是因为索引底层使用了rowid机制。
+
+6、面试题：使用delete语句删除表中重复的记录。
+	
+	SQL> select * from t_user;
+
+	NAME
+	------------------------------
+	jack
+	jack
+	jack
+	jack
+	jack
+	zhangsan
+	zhangsan
+	zhangsan
+	zhangsan
+	
+	SQL> select name,rowid from t_user;
+
+	NAME                                                             ROWID
+	---------------------------------------------------------------- ------------------
+	jack                                                             AAAE6+AABAAALAJAAA
+	jack                                                             AAAE6+AABAAALAJAAB
+	jack                                                             AAAE6+AABAAALAJAAC
+	jack                                                             AAAE6+AABAAALAJAAD
+	jack                                                             AAAE6+AABAAALAJAAE
+	zhangsan                                                         AAAE6+AABAAALAJAAF
+	zhangsan                                                         AAAE6+AABAAALAJAAG
+	zhangsan                                                         AAAE6+AABAAALAJAAH
+	zhangsan                                                         AAAE6+AABAAALAJAAI
+
+	delete from t_user where rowid not in(select min(rowid) from t_user group by name);

@@ -1,0 +1,121 @@
+
+索引【index】
+
+1、什么是索引？什么作用？
+	* 索引对应的英语单词：index
+	* 索引相当于一本书的目录，为了提高检索效率而存在的一种机制。
+
+2、怎么创建索引？
+
+	SQL> create index emp_ename_index on emp(ename); //给emp表中的ename字段添加一个索引，索引起名emp_ename_index
+
+	索引已创建。
+
+
+3、怎么删除索引？
+	
+	SQL> drop index emp_ename_index;
+
+	索引已删除。
+
+4、索引也有一张系统表：user_indexes
+
+	user_tables  系统表描述用户表
+	user_constraints 系统表描述约束信息
+	user_indexes 系统表描述索引信息
+
+5、索引也是存储在硬盘当中的，也是需要维护的，所以字段上不能随便添加索引。
+
+6、什么时候字段上应该添加索引呢？
+	* 大数据量
+	* 该字段很少的DML操作
+	* 该字段经常出现在where条件当中
+
+7、索引的实现原理？
+	
+	7.1、只要知道rowid，通过rowid的检索效率是极高的
+
+		SQL> select * from emp where rowid='AAAE5SAABAAAK+hAAC';
+
+			  EMPNO ENAME                JOB                       MGR HIREDATE              SAL       COMM     DEPTNO
+		---------- -------------------- ------------------ ---------- -------------- ---------- ---------- ----------
+				7521 WARD                 SALESMAN                 7698 22-2月 -81           1250        500      30
+	
+
+	7.2、当ename字段上没有添加索引的时候，以下的SQL语句是怎么执行的呢？
+
+		SQL> select * from emp where ename = 'FORD';
+
+			  EMPNO ENAME                JOB                       MGR HIREDATE              SAL       COMM     DEPTNO
+		---------- -------------------- ------------------ ---------- -------------- ---------- ---------- ----------
+				7902 FORD                 ANALYST                  7566 03-12月-81           3000                 20
+		
+		以上SQL语句在执行的时候，进行全表扫描，扫描emp表的ename字段中的所有记录。
+	
+	7.3、当ename字段上添加了索引，这个时候在硬盘的某个位置上有多个了一个索引对象。这个索引专门是为
+	ename字段服务的，相当于生成了ename字段的一个目录。
+
+		SQL> select empno,ename,sal,job,rowid from emp;
+
+			  EMPNO ENAME                       SAL JOB                ROWID
+		---------- -------------------- ---------- ------------------ ------------------
+				7369 SMITH                       800 CLERK              AAAE5SAABAAAK+hAAA
+				7499 ALLEN                      1600 SALESMAN           AAAE5SAABAAAK+hAAB
+				7521 WARD                       1250 SALESMAN           AAAE5SAABAAAK+hAAC
+				7566 JONES                      2975 MANAGER            AAAE5SAABAAAK+hAAD
+				7654 MARTIN                     1250 SALESMAN           AAAE5SAABAAAK+hAAE
+				7698 BLAKE                      2850 MANAGER            AAAE5SAABAAAK+hAAF
+				7782 CLARK                      2450 MANAGER            AAAE5SAABAAAK+hAAG
+				7839 KING                       5000 PRESIDENT          AAAE5SAABAAAK+hAAH
+				7844 TURNER                     1500 SALESMAN           AAAE5SAABAAAK+hAAI
+				7900 JAMES                       950 CLERK              AAAE5SAABAAAK+hAAJ
+				7902 FORD                       3000 ANALYST            AAAE5SAABAAAK+hAAK
+
+			  EMPNO ENAME                       SAL JOB                ROWID
+		---------- -------------------- ---------- ------------------ ------------------
+				7934 MILLER                     1300 CLERK              AAAE5SAABAAAK+hAAL
+		
+		在硬盘的另一个空间上专门为ename字段维护了一个索引对象：
+		例如，执行这样的SQL语句：
+			create index emp_ename_index on emp(ename);
+
+			以下的记录就是这个索引对象：emp_ename_index
+			索引是自动排序的，并且索引底层会进行“分区”
+
+			ENAME                ROWID
+			-------------------- ------------------
+			ALLEN                AAAE5SAABAAAK+hAAB
+
+			BLAKE                AAAE5SAABAAAK+hAAF
+
+			CLARK                AAAE5SAABAAAK+hAAG
+
+			FORD                 AAAE5SAABAAAK+hAAK
+
+			JAMES                AAAE5SAABAAAK+hAAJ
+			JONES                AAAE5SAABAAAK+hAAD
+
+			KING                 AAAE5SAABAAAK+hAAH
+
+			MARTIN               AAAE5SAABAAAK+hAAE
+			MILLER               AAAE5SAABAAAK+hAAL
+
+			SMITH                AAAE5SAABAAAK+hAAA
+
+			TURNER               AAAE5SAABAAAK+hAAI
+
+			WARD                 AAAE5SAABAAAK+hAAC
+
+			当再执行以下SQL语句的时候，是怎么执行的呢？
+			发现ename字段有相关的索引，这个时候找到emp_ename_index索引对象。
+			发现ename='MILLER'，先在索引上找到'M'区进行扫描范围的缩小。快速
+			找到'MILLER'之后，获取'MILLER'后面的rowid是'AAAE5SAABAAAK+hAAL'
+
+				select * from emp where ename = 'MILLER';
+			
+			找到rowid之后接下来以上的SQL语句就变成：
+				
+				select * from emp where ename = 'AAAE5SAABAAAK+hAAL';
+
+8、带有主键约束的字段，自动添加索引。尽量根据主键查询，效率很高。
+

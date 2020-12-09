@@ -1,0 +1,274 @@
+关于Oracle数据库当中的rownum
+
+1、rownum是什么？
+	* Oracle数据库中特有的，其它数据库中没有这种机制。
+	* rownum是行号，行号从1开始，以1递增。
+	* rownum只在DQL语句当中存在
+	* rownum是专门为查询结果集生成的行号
+	* 查询结果集出来之后，再为查询结果集动态生成行号。
+
+2、使用rownum
+
+	SQL> select ename,sal,rownum from emp;
+
+	ENAME                       SAL     ROWNUM
+	-------------------- ---------- ----------
+	SMITH                       800          1
+	ALLEN                      1600          2
+	WARD                       1250          3
+	JONES                      2975          4
+	MARTIN                     1250          5
+	BLAKE                      2850          6
+	CLARK                      2450          7
+	KING                       5000          8
+	TURNER                     1500          9
+	JAMES                       950         10
+	FORD                       3000         11
+	MILLER                     1300         12
+
+	rownum其实是一个伪字段，在emp表中实际上是不存在的，
+	在查询结果集生成时rownum出现。
+
+3、研究rownum和表中的记录有绑定关系吗？
+
+	SQL> select ename,sal,rownum from emp where ename='KING';
+
+	ENAME                       SAL     ROWNUM
+	-------------------- ---------- ----------
+	KING                       5000          1
+
+	rownum和表中的记录之间没有绑定关系。
+
+4、rownum支持哪些操作？
+	
+	* SQL> select ename,sal from emp where rownum=2;	//无查询结果
+	* SQL> select ename,sal from emp where rownum=1;	//可以查询到记录
+	* SQL> select ename,sal from emp where rownum<5;	//可以查询到记录
+	* SQL> select ename,sal from emp where rownum<=5;	//可以查询到记录
+	* SQL> select ename,sal from emp where rownum>2;	//无查询结果
+	* SQL> select ename,sal from emp where rownum>1;	//无查询结果
+	* SQL> select ename,sal from emp where rownum>=1;	//可以查询到记录【没有意义，全部查询了】
+
+	结论：
+		rownum支持：
+			= 1 和 小于操作
+
+5、找出员工表中前5条记录
+	
+	select ename,sal from emp where rownum <= 5;
+
+		ENAME                       SAL
+		-------------------- ----------
+		SMITH                       800
+		ALLEN                      1600
+		WARD                       1250
+		JONES                      2975
+		MARTIN                     1250
+
+6、找出员工表中工资排名在前5名的员工
+	
+	第一步：按照员工的工资降序排列
+		select ename,sal from emp order by sal desc;
+
+		ENAME                       SAL
+		-------------------- ----------
+		KING                       5000
+		FORD                       3000
+		JONES                      2975
+		BLAKE                      2850
+		CLARK                      2450
+		ALLEN                      1600
+		TURNER                     1500
+		MILLER                     1300
+		MARTIN                     1250
+		WARD                       1250
+		JAMES                       950
+		SMITH                       800
+
+	第二步：取出上面临时表中的前5条记录
+		select t.* from (select ename,sal from emp order by sal desc) t where rownum <= 5;
+
+		ENAME                       SAL
+		-------------------- ----------
+		KING                       5000
+		FORD                       3000
+		JONES                      2975
+		BLAKE                      2850
+		CLARK                      2450
+	
+	错误的写法：
+		select ename,sal from emp where rownum <= 5 order by sal desc;
+	
+	MYSQL的编写方式：
+		select ename,sal from emp order by sal desc limit 0,5;
+		select ename,sal from emp order by sal desc limit 5;
+
+7、找出工资排名在【3-9】名的员工
+	
+	第一步：先按照工资降序排序
+
+		select ename,sal from emp order by sal desc;
+
+		ENAME                       SAL
+		-------------------- ----------
+		KING                       5000
+		FORD                       3000
+		JONES                      2975
+		BLAKE                      2850
+		CLARK                      2450
+		ALLEN                      1600
+		TURNER                     1500
+		MILLER                     1300
+		MARTIN                     1250
+		WARD                       1250
+		JAMES                       950
+		SMITH                       800
+
+	第二步：将上面的查询结果当做临时表t，然后取前9条记录
+		
+		SQL> select t.* from (select ename,sal from emp order by sal desc) t where rownum <= 9;
+
+		ENAME                       SAL
+		-------------------- ----------
+		KING                       5000
+		FORD                       3000
+		JONES                      2975
+		BLAKE                      2850
+		CLARK                      2450
+		ALLEN                      1600
+		TURNER                     1500
+		MILLER                     1300
+		WARD                       1250
+
+		select t.*,rownum as linenum from (select ename,sal from emp order by sal desc) t where rownum <= 9;
+
+		ENAME                       SAL    LINENUM
+		-------------------- ---------- ----------
+		KING                       5000          1
+		FORD                       3000          2
+		JONES                      2975          3
+		BLAKE                      2850          4
+		CLARK                      2450          5
+		ALLEN                      1600          6
+		TURNER                     1500          7
+		MILLER                     1300          8
+		WARD                       1250          9
+
+	第三步：将上面的查询结果当做临时表x，取x.linenum >= 3
+
+		select 
+			x.*
+		from
+			(select t.*,rownum as linenum from (select ename,sal from emp order by sal desc) t where rownum <= 9) x
+		where 
+			x.linenum >= 3;
+
+		ENAME                       SAL    LINENUM
+		-------------------- ---------- ----------
+		JONES                      2975          3
+		BLAKE                      2850          4
+		CLARK                      2450          5
+		ALLEN                      1600          6
+		TURNER                     1500          7
+		MILLER                     1300          8
+		WARD                       1250          9
+	
+	有多种方式可以实现以上功能，常用的就是以上三层DQL语句的嵌套。
+	小窍门：别名【rownum as linenum】
+
+8、mysql通用的分页SQL语句
+	
+	找出工资排名在【3-9】名的员工
+		select ename,sal from emp order by sal desc limit 2,7;
+	
+	每页显示3条记录
+	第1页：[0,3]
+	第2页：[3,3]
+	第3页：[6,3]
+	
+	每页显示pageSize条记录
+	第pageNo页：[ (pageNo - 1) * pageSize , pageSize ]
+
+	select 
+		* 
+	from 
+		tablename 
+	order by 
+		colmuname desc/asc 
+	limit 
+		(pageNo - 1) * pageSize , pageSize;
+
+9、Oracle通用的分页SQL语句
+	
+	找出工资排名在【3-9】名的员工
+
+		select 
+			x.*
+		from
+			(select 
+				t.*,rownum as linenum
+			 from 
+				(select 
+					ename,sal 
+				 from 
+					emp 
+				 order by 
+					sal desc) t 
+			 where 
+				rownum <= 9) x
+		where 
+			x.linenum >= 3;
+	
+	每页显示3条记录
+	第1页：(0-3]
+	第2页：(3-6]
+	第3页：(6-9]
+
+	每页显示pageSize条记录
+	第pageNo页：( (pageNo - 1) * pageSize  ~  pageNo * pageSize ]
+
+	Oracle标准的通用分页SQL语句：
+
+		select 
+			x.*
+		from
+			(select 
+				t.*,rownum as linenum
+			 from 
+				(业务SQL语句) t 
+			 where 
+				rownum <= pageNo * pageSize) x
+		where 
+			x.linenum > (pageNo - 1) * pageSize ;
+
+		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

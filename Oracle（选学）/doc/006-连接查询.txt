@@ -1,0 +1,342 @@
+连接查询
+
+1、什么是连接查询?
+
+2、连接查询根据语法年代分类？
+	* SQL92
+		- 表的连接条件和将来数据的过滤条件是在一起的，都在where后面。【结构不清晰】
+	* SQL99
+		- 表的连接条件和将来数据的过滤条件是分离的。【结构清晰】
+
+3、连接查询根据连接方式分类？
+
+	* 内连接
+		- 等值连接
+		- 非等值连接
+		- 自连接
+
+	* 外连接
+		- 左(外)连接
+		- 右(外)连接
+
+4、什么是笛卡尔积现象？怎么避免？
+
+案例：找出每一个员工的部门名称，要求显示员工名和对应的部门名？
+
+SQL> select ename,deptno from emp;
+
+ENAME                    DEPTNO
+-------------------- ----------
+SMITH                        20
+ALLEN                        30
+WARD                         30
+JONES                        20
+MARTIN                       30
+BLAKE                        30
+CLARK                        10
+KING                         10
+TURNER                       30
+JAMES                        30
+FORD                         20
+MILLER                       10
+
+SQL> select deptno,dname from dept;
+
+    DEPTNO DNAME
+---------- --------------------------
+        10 ACCOUNTING
+        20 RESEARCH
+        30 SALES
+        40 OPERATIONS
+
+SQL> select e.ename,d.dname from emp e , dept d;
+....
+48条记录
+
+像以上的查询结果条数是emp表12条记录和dept表中的4条记录进行匹配，最终结果条数是：12*4=48【笛卡尔乘积现象】
+
+避免：添加查询条件
+select e.ename,d.dname from emp e , dept d where e.deptno=d.deptno;
+
+ENAME                DNAME
+-------------------- ------------
+SMITH                RESEARCH
+ALLEN                SALES
+WARD                 SALES
+JONES                RESEARCH
+MARTIN               SALES
+BLAKE                SALES
+CLARK                ACCOUNTING
+KING                 ACCOUNTING
+TURNER               SALES
+JAMES                SALES
+FORD                 RESEARCH
+MILLER               ACCOUNTING
+		
+
+5、避免了笛卡尔积现象，连接匹配的次数变少了吗？什么变了？
+	没有变少，实际上次数还是乘积，只不过记录变少了，合法记录筛选出来了。
+
+6、案例：查询出每一个员工的部门名称，要求显示员工名和部门名【别名】
+
+	SQL99语法：内连接中的等值连接
+	SQL> select e.ename,d.dname from emp e join dept d on e.deptno=d.deptno;
+	SQL> select e.ename,d.dname from emp e inner join dept d on e.deptno=d.deptno;
+
+	SQL92语法：内连接中的等值连接
+	SQL> select e.ename,d.dname from emp e,dept d where e.deptno=d.deptno;
+
+	ENAME                DNAME
+	-------------------- ------------
+	SMITH                RESEARCH
+	ALLEN                SALES
+	WARD                 SALES
+	JONES                RESEARCH
+	MARTIN               SALES
+	BLAKE                SALES
+	CLARK                ACCOUNTING
+	KING                 ACCOUNTING
+	TURNER               SALES
+	JAMES                SALES
+	FORD                 RESEARCH
+	MILLER               ACCOUNTING
+
+7、案例：找出每个员工的薪水等级，要求显示员工名和对应的薪水等级
+
+	SQL> select ename,sal from emp;
+
+	ENAME                       SAL
+	-------------------- ----------
+	SMITH                       800
+	ALLEN                      1600
+	WARD                       1250
+	JONES                      2975
+	MARTIN                     1250
+	BLAKE                      2850
+	CLARK                      2450
+	KING                       5000
+	TURNER                     1500
+	JAMES                       950
+	FORD                       3000
+	MILLER                     1300
+
+	SQL> select grade,losal,hisal from salgrade;
+
+		  GRADE      LOSAL      HISAL
+	---------- ---------- ----------
+				1        700       1200
+				2       1201       1400
+				3       1401       2000
+				4       2001       3000
+				5       3001       9999
+	
+	SQL99语法：内连接中的非等值连接
+	SQL> select e.ename,e.sal,s.grade from emp e join salgrade s on e.sal between s.losal and s.hisal;
+	SQL> select e.ename,e.sal,s.grade from emp e inner join salgrade s on e.sal between s.losal and s.hisal;
+
+	SQL92语法：内连接中的非等值连接
+	SQL> select e.ename,e.sal,s.grade from emp e , salgrade s where e.sal between s.losal and s.hisal;
+
+	ENAME                       SAL      GRADE
+	-------------------- ---------- ----------
+	SMITH                       800          1
+	JAMES                       950          1
+	WARD                       1250          2
+	MARTIN                     1250          2
+	MILLER                     1300          2
+	ALLEN                      1600          3
+	TURNER                     1500          3
+	JONES                      2975          4
+	BLAKE                      2850          4
+	CLARK                      2450          4
+	FORD                       3000          4
+	KING                       5000          5
+
+8、案例：找出每个员工的上级领导，要求显示员工名对应的领导名
+
+emp a表 员工表
+
+     EMPNO ENAME                       MGR
+---------- -------------------- ----------
+      7369 SMITH                      7902
+      7499 ALLEN                      7698
+      7521 WARD                       7698
+      7566 JONES                      7839
+      7654 MARTIN                     7698
+      7698 BLAKE                      7839
+      7782 CLARK                      7839
+      7839 KING
+      7844 TURNER                     7698
+      7900 JAMES                      7698
+      7902 FORD                       7566
+      7934 MILLER                     7782
+
+emp b表 领导表
+
+     EMPNO ENAME                 
+---------- -------------------- 
+      7566 JONES                      
+      7698 BLAKE                      
+      7782 CLARK                      
+      7839 KING
+      7902 FORD 
+
+连接条件：员工表的领导编号 = 领导表的员工编号
+
+SQL99语法：内连接中的自连接
+select a.ename empname,b.ename leadername from emp a join emp b on a.mgr = b.empno;
+select a.ename empname,b.ename leadername from emp a inner join emp b on a.mgr = b.empno;
+
+SQL92语法：内连接中的自连接
+select a.ename empname,b.ename leadername from emp a , emp b where a.mgr = b.empno;
+
+EMPNAME              LEADERNAME
+-------------------- ---------------
+FORD                 JONES
+JAMES                BLAKE
+TURNER               BLAKE
+MARTIN               BLAKE
+WARD                 BLAKE
+ALLEN                BLAKE
+MILLER               CLARK
+CLARK                KING
+BLAKE                KING
+JONES                KING
+SMITH                FORD
+
+
+9、案例：找出每个员工的部门名称，要求部门全部显示。
+
+内连接
+SQL> select e.ename,d.dname from emp e join dept d on e.deptno=d.deptno;
+
+ENAME                DNAME
+-------------------- ----------------------------
+SMITH                RESEARCH
+ALLEN                SALES
+WARD                 SALES
+JONES                RESEARCH
+MARTIN               SALES
+BLAKE                SALES
+CLARK                ACCOUNTING
+KING                 ACCOUNTING
+TURNER               SALES
+JAMES                SALES
+FORD                 RESEARCH
+MILLER               ACCOUNTING
+
+
+SQL92语法：外连接中的右(外)连接
+select e.ename,d.dname from emp e , dept d where e.deptno(+) = d.deptno;
+
+SQL92语法：外连接中的左(外)连接
+select e.ename,d.dname from emp e , dept d where d.deptno = e.deptno(+);
+
+SQL99语法：外连接中的右(外)连接
+select e.ename,d.dname from emp e right outer join dept d on e.deptno=d.deptno;
+select e.ename,d.dname from emp e right join dept d on e.deptno=d.deptno;
+
+SQL99语法：外连接中的左(外)连接
+select e.ename,d.dname from dept d left outer join emp e on e.deptno=d.deptno;
+select e.ename,d.dname from dept d left join emp e on e.deptno=d.deptno;
+
+ENAME                DNAME
+-------------------- ------------
+SMITH                RESEARCH
+ALLEN                SALES
+WARD                 SALES
+JONES                RESEARCH
+MARTIN               SALES
+BLAKE                SALES
+CLARK                ACCOUNTING
+KING                 ACCOUNTING
+TURNER               SALES
+JAMES                SALES
+FORD                 RESEARCH
+MILLER               ACCOUNTING
+                     OPERATIONS
+
+10、外连接什么时候使用？
+	a和b两张表连接查询，想将其中一张表的数据全部显示，必须使用外连接。
+	对方表记录无法与之匹配，自动添加“空”与其匹配。
+
+	任何一个左连接都可以有右连接的写法。
+	任何一个右连接都可以有左连接的写法。
+
+11、案例：找出哪个部门没有员工
+	select e.ename,d.dname from dept d left join emp e on e.deptno=d.deptno where e.ename is null;
+
+		ENAME                DNAME
+	-------------------- -------------
+								OPERATIONS
+
+
+12、案例：找出所有员工的上级领导，要求显示员工名与上级领导名。
+	
+	select a.ename 员工,b.ename 领导 from emp a join emp b on a.mgr = b.empno;
+
+	员工                 领导
+	-------------------- -------
+	FORD                 JONES
+	JAMES                BLAKE
+	TURNER               BLAKE
+	MARTIN               BLAKE
+	WARD                 BLAKE
+	ALLEN                BLAKE
+	MILLER               CLARK
+	CLARK                KING
+	BLAKE                KING
+	JONES                KING
+	SMITH                FORD
+
+	select a.ename 员工,b.ename 领导 from emp a left join emp b on a.mgr = b.empno;
+
+	员工                 领导
+	-------------------- ------
+	FORD                 JONES
+	JAMES                BLAKE
+	TURNER               BLAKE
+	MARTIN               BLAKE
+	WARD                 BLAKE
+	ALLEN                BLAKE
+	MILLER               CLARK
+	CLARK                KING
+	BLAKE                KING
+	JONES                KING
+	SMITH                FORD
+	KING
+
+13、三张表连接：找出每个员工的部门名称以及薪水等级，要求显示员工名、部门名、薪水、薪水等级.
+
+emp e 
+dept d
+salgrade s
+
+
+select 
+	e.ename,d.dname,e.sal,s.grade
+from
+	emp e
+join
+	dept d
+on
+	e.deptno=d.deptno
+join
+	salgrade s
+on
+	e.sal between s.losal and s.hisal;
+
+ENAME                DNAME                               SAL      GRADE
+-------------------- ---------------------------- ---------- ----------
+SMITH                RESEARCH                            800          1
+JAMES                SALES                               950          1
+WARD                 SALES                              1250          2
+MARTIN               SALES                              1250          2
+MILLER               ACCOUNTING                         1300          2
+ALLEN                SALES                              1600          3
+TURNER               SALES                              1500          3
+JONES                RESEARCH                           2975          4
+BLAKE                SALES                              2850          4
+CLARK                ACCOUNTING                         2450          4
+FORD                 RESEARCH                           3000          4
+KING                 ACCOUNTING                         5000          5

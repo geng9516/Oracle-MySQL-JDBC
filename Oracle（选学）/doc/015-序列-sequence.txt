@@ -1,0 +1,52 @@
+
+序列-sequence
+
+1、序列是Oracle数据库当中特有的，专门用来维护一个自增的数字，默认情况下从1开始，以1递增。
+类似于mysql当中的auto_increment
+
+2、创建序列对象
+	create sequence myseq;
+
+3、删除序列对象
+	drop sequence myseq;
+
+4、序列对象也有一张系统表：user_sequences
+
+	规律：user_XXXs
+
+5、序列对象都有两个属性：
+	* nextval：从序列当中获取下一个值
+	* currval：从序列对象当中获取当前值
+
+6、案例：
+	create table t_customer(
+		id number(10) primary key,
+		name varchar2(32)
+	);
+
+	create sequence myseq;
+
+	insert into t_customer(id,name) values(myseq.nextval,'jack1');
+	insert into t_customer(id,name) values(myseq.nextval,'jack2');
+	insert into t_customer(id,name) values(myseq.nextval,'jack3');
+	insert into t_customer(id,name) values(myseq.nextval,'jack4');
+	insert into t_customer(id,name) values(myseq.nextval,'jacka');
+	insert into t_customer(id,name) values(myseq.nextval,'jackb');
+	insert into t_customer(id,name) values(myseq.nextval,'jackc');
+
+	commit;
+
+	select * from t_customer;
+
+7、注意：Oracle中的sequence是一个共享的对象。所以有的时候会出现断号现象，
+但是断号不是问题，因为主键只要不重复即可，没必要连续。
+
+8、创建一个完整的序列对象：
+
+	create sequence my_seq_01
+	start with 100
+	minvalue 100
+	maxvalue 1000
+	increment by 10
+	cycle
+	cache 10;

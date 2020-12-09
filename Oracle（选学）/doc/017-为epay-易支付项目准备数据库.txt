@@ -1,0 +1,27 @@
+
+【以下所有操作必须是管理员】
+
+1、创建数据库【这一步省略了，直接使用已有的数据XE】
+
+2、创建用户epay，密码bjpowernode
+	
+	create user epay identified by bjpowernode;
+
+3、创建表空间，给表空间起名epay_tablespace
+	
+	create tablespace epay_tablespace datafile 'C:\oraclexe\app\oracle\oradata\XE\EPAY.DBF' size 50m;
+
+4、让epay这个用户去使用epay_tablespace表空间
+
+	alter user epay default tablespace epay_tablespace;
+
+5、授权
+	
+	grant 
+		create session,
+		create table,
+		create sequence,
+		create indextype,
+		unlimited tablespace
+	to 
+		epay;

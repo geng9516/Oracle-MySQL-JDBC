@@ -1,0 +1,67 @@
+视图
+
+1、视图对应的英语单词是view
+
+2、视图也有一张系统表：user_views
+
+3、创建视图
+	
+	SQL> create view empview as select ename,sal from emp;
+	create view empview as select ename,sal from emp
+					*
+	第 1 行出现错误:
+	ORA-01031: 权限不足
+
+	怎么查看当前用户拥有的权限呢？
+		Oracle数据库当中提供了一张系统表：session_privs
+		session_privs表中描述了当前用户拥有哪些权限。
+	
+		SQL> select * from session_privs;
+
+		PRIVILEGE
+		---------------------------------
+		CREATE SESSION					连接数据库的权限
+		UNLIMITED TABLESPACE			使用表空间的权限
+		CREATE TABLE					创建表的权限
+		CREATE CLUSTER					
+		CREATE SEQUENCE				创建序列对象的权限
+		CREATE PROCEDURE				
+		CREATE TRIGGER
+		CREATE TYPE
+		CREATE OPERATOR
+		CREATE INDEXTYPE				创建索引的权限
+
+		已选择10行。
+	
+	授权：grant ... to...【管理员才能授权】
+	SQL> grant CREATE VIEW to scott;
+	授权成功。
+
+	撤销权限：revoke ... from...【管理员才能撤销权限】
+	SQL> revoke create view from scott;
+	撤销成功。
+
+	SQL> create view empview as select ename,sal from emp;
+	视图已创建。
+
+
+4、删除视图
+
+	SQL> drop view empview;
+
+	视图已删除。
+
+5、视图有什么作用？
+
+	* 隐藏表的实现细则。
+
+	* 一般情况下都是客户的DBA创建视图对象，将视图对象提供给软件公司的程序员，
+	程序员只能面向视图进行CRUD操作，程序员根本不知道原表中的数据以及表结构信息。
+	原表得到保护。
+
+6、例子：
+	create view sview as select id a , name b from tbl_student;
+	视图对象只能指向一条DQL语句。
+
+	但是通过对视图中的数据进行增删改，视图指向的那张表中的数据也会跟随着进行增删改。
+
